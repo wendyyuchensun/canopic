@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const pkgUp = require('pkg-up');
+const prettier = require('prettier');
 
 const CANOPIC_SETTING = process.env.CANOPIC_SETTING || 'default';
 
@@ -19,10 +20,16 @@ const pkgPath = pkgUp.sync({
 
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 
-settingPaths.map(settingPath => `./jars/${CANOPIC_SETTING}/${settingPath}`)
+const overrided = settingPaths
+  .map(settingPath => `./jars/${CANOPIC_SETTING}/${settingPath}`)
   .map(settingPath => require(settingPath))
-  .forEach(override => {
-    override(pkg, pkgPath);
+  .map(override => override(pkg, pkgPath))
+  .some(overrided => overrided);
+
+if (overrided) {
+  const prettiedPkg = prettier.format(JSON.stringify(pkg, null, 2), {
+    parser: 'json', ...pkg.prettier
   });
 
-fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), 'utf8');
+  fs.writeFileSync(pkgPath, prettiedPkg, 'utf8');
+}

@@ -1,7 +1,6 @@
 module.exports = pkg => {
-  if (!pkg.eslintConfig) {
-    pkg.eslintConfig = {
-      extends: "react-app"
-    };
-  }
+  if (pkg.eslintConfig) return false;
+
+  pkg.eslintConfig = { extends: "react-app" };
+  return true;
 };
